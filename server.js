@@ -1,16 +1,40 @@
+// Require in server and middleware
 const express = require('express');
-const server = express();
+const app = express();
 const port = 3001;
 const bodyParser = require('body-parser');
 const fs = require('fs');
 
-server.set('port', process.env.PORT || 3001);
+// Require in routers (require('./filepath/customers')) etc...
+const homeRouter = require('./routes/home_route');
+const loginRouter = require('./routes/auth_login');
 
-server.get('/', (request, response) => {
-    response.json('Welcome to our nut butter e-commerce app');
-})
+// Set local port
+app.set('port', process.env.PORT || 3001);
+
+
+
+
+////////// MIDDLEWARE //////////
+// Make body-parser middleware available 
+app.use(bodyParser.urlencoded({ extended: false }));
+
+
+
+
+////////// ROUTES //////////
+//use homeRouter (index.html homepage)
+app.use('/', homeRouter);
+
+//use loginRouter
+app.use('/auth', loginRouter);
+
+
+
+
+
 
 // Listen for 3001
-server.listen(port, () => {
+app.listen(port, () => {
     console.log(`Server started on port ${port}.`)
 });
