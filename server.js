@@ -10,6 +10,7 @@ server.get('/', (request, response) => {
     response.json('Welcome to our nut butter e-commerce app');
 })
 
-server.listen(3001, () => {
+// Listen for 3001
+server.listen(port, () => {
     console.log(`Server started on port ${port}.`)
 });
