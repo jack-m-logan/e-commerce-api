@@ -17,7 +17,10 @@ app.set('port', process.env.PORT || 3001);
 
 ////////// MIDDLEWARE //////////
 // Make body-parser middleware available 
+app.set('views', __dirname + '/views'); // general config
+app.set('view engine', 'jade');
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static(__dirname + '/public'));
 
 
 

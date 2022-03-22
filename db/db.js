@@ -1,6 +1,7 @@
 const { Pool, Client } = require('pg');
 require('dotenv').config();
 
+// Connect to DB and export getClient function
 (async () => {
     const client = new Client({
         host: process.env.PG_HOST,
@@ -14,4 +15,3 @@ require('dotenv').config();
     console.log(response.rows[0].connected);
     await client.end();
 })();
-

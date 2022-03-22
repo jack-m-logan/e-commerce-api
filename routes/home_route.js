@@ -4,7 +4,7 @@ const path = require('path');
 
 // Homepage GET route
 homeRouter.get('/', (request, response) => {
-    response.sendFile(path.resolve('./static/index.html'));
+    response.sendFile(path.resolve('./public/index.html'));
 })
 
 module.exports = homeRouter;
