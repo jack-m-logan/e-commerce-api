@@ -1,9 +1,9 @@
-const { getClient } = require('./get-client');
+const pool = require('./db');
 
-(async () => {
-  const client = await getClient();
+const addData = async() => {
   const name = process.argv[2] ?? 'null';
-  let insertRow = await client.query('INSERT INTO my_table(name) VALUES($1);', [`${name}`]);
+  let insertRow = await pool.query('INSERT INTO my_table(name) VALUES($1);', [`${name}`]);
   console.log(`Inserted ${insertRow.rowCount} row`);
-  await client.end();
-})();
+}
+
+addData();
