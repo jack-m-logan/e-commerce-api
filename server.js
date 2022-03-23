@@ -32,7 +32,7 @@ app.use('/', homeRouter);
 //use loginRouter
 app.use('/auth', loginRouter);
 
-
+module.exports = { app };
 
 
 

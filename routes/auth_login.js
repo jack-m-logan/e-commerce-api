@@ -29,7 +29,7 @@ loginRouter.get('/', (request, response) => {
 });
 
 // POST form submission. NOT YET WORKING. CHECK route/failure-/success-routes. Check username vs req.body.username?
-loginRouter.post('/login', passport.authenticate('local', {
+loginRouter.post('/auth/login', passport.authenticate('local', {
   successRedirect: '/',
   failureRedirect: '/auth'
 }));
