@@ -29,6 +29,21 @@ passport.use(new LocalStrategy(function verify(username, password, cb) {
   })
 }))
 
+// POST - create new customer (TODO: get POST new customer details working below, then add new address query to this request)
+loginRouter.post('/customer', (req, res, next) => {
+  const { id, first_name, last_name, username, password, email } = req.body;
+  db.query(`
+    INSERT INTO customers (id, first_name, last_name, username, password, email)
+    VALUES ((SELECT MAX(id) +1 FROM customers), $1, $2, $3, $4, $5)
+  `, [req.body], (err, result) => {
+    if (err) {
+      return next(err)
+    } else {
+      res.status(201).send(`Registration successful!`)
+    }
+  })
+})
+
 // GET log in page
 loginRouter.get('/', (request, response) => {
   response.sendFile(path.resolve('./public/auth.html'));

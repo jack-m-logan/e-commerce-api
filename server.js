@@ -5,9 +5,12 @@ const port = 3001;
 const bodyParser = require('body-parser');
 const fs = require('fs');
 
-// Require in routers (require('./filepath/customers')) etc...
+// Require routers 
 const homeRouter = require('./routes/home_route');
 const loginRouter = require('./routes/auth_login');
+const customersRouter = require('./routes/customers_routes');
+const addressesRouter = require('./routes/addresses_routes');
+
 
 // Set local port
 app.set('port', process.env.PORT || 3001);
@@ -20,6 +23,7 @@ app.set('port', process.env.PORT || 3001);
 app.set('views', __dirname + '/views'); // general config
 app.set('view engine', 'jade');
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(express.static(__dirname + '/public'));
 
 
@@ -32,9 +36,13 @@ app.use('/', homeRouter);
 //use loginRouter
 app.use('/auth', loginRouter);
 
+//use customersRouter
+app.use('/customers', customersRouter);
+
+//use addressesRouter
+app.use('/addresses', addressesRouter);
+
 module.exports = { app };
-
-
 
 
 // Listen for 3001
