@@ -42,7 +42,7 @@ app.use('/addresses', addressesRouter);
 app.use('/products', productsRouter);
 
 //use cartsRouter
-app.use('/cart', cartsRouter);
+app.use('/carts', cartsRouter);
 
 //use ordersRouter 
 app.use('/orders', ordersRouter);

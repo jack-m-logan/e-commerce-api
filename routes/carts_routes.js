@@ -17,19 +17,18 @@ const db = require('../db/db');
 // DELETE - delete/empty a customer's cart
 
 
-// GET - a customer's cart. TODO - add data to carts table and verify this works
+// GET - a customer's cart.
 cartsRouter.get('/:customer_id/:id', (req, res, next) => {
-    const customer_id = req.body.customer_id;
-    const id = req.body.id;
-    db.query('SELECT * FROM carts WHERE customer_id = $1 AND id = $2;', [customer_id, id], (err, result) => {
+    const customer_id = req.params.customer_id;
+    const id = req.params.id;
+    db.query(`SELECT * FROM carts WHERE customer_id = $1 AND id = $2;`, [customer_id, id], (err, result) => {
         if (err) {
             res.sendStatus(500);
             return next(err);
         } else {
-            res.status(200).send(result.rows[0])
+            res.status(200).send(result.rows)
         }
     })
 });
-
 
 module.exports = cartsRouter;

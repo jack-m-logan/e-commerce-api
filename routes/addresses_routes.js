@@ -46,17 +46,17 @@ addressesRouter.post('/:customer_id/:address_id', (req, res, next) => {
 // PUT (OR PATCH??) edit customer's address
 
 
-// DELETE an address (TODO - NOT YET WORKING)
+// DELETE an address (TODO - query is working but need to add a 200 response message "The address has been deleted" and add error handling message
 addressesRouter.delete('/:customer_id/:id', (req, res, next) => {
-    const customer_id = req.body.customer_id;
-    const id = req.body.id;
+    const customer_id = req.params.customer_id;
+    const id = req.params.id;
     db.query(`DELETE FROM addresses WHERE customer_id = $1 AND id = $2`, [customer_id, id], (err, result) => {
         if (err) {
             res.sendStatus(500)
             return next(err);
         } else {
             // Try changing to .send(result)
-            res.status(200).send(result);
+            res.status(200).send(result.rows);
         }
     })
 });
