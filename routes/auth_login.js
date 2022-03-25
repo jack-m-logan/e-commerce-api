@@ -39,6 +39,7 @@ loginRouter.post('/customer', (req, res, next) => {
     if (err) {
       return next(err)
     } else {
+      // Try changing to .send(result)
       res.status(201).send(`Registration successful!`)
     }
   })

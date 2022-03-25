@@ -27,11 +27,11 @@ customersRouter.get('/:id', (req, res, next) => {
     })
 })
 
-////// TO DO
-// PATCH - edit existing customer by id
-customersRouter.patch('/:id', (req, res, next) => {
+// ////// TO DO
+// // PATCH - edit existing customer by id
+// customersRouter.patch('/:id', (req, res, next) => {
 
-})
+// })
 
 ////// TO DO
 // DELETE - remove a customer by id (working but wrong messages showing)
@@ -46,6 +46,7 @@ customersRouter.delete('/:id', (req, res, next) => {
             res.sendStatus(404);
             return next(new Error('Not a valid customer', err))
         } else {
+            // Try changing to .send(result)
             res.status(200).send(`The customer's profile was successfully deleted`)
         }
     })

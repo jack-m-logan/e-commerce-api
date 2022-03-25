@@ -32,7 +32,7 @@ addressesRouter.post('/:customer_id/:address_id', (req, res, next) => {
     const { id, house_number, street, town_city, county, country, postcode, customer_id } = req.body;
     db.query(`
         INSERT INTO addresses (id, house_number, street, town_city, county, country, postcode, customer_id)
-        VALUES ((SELECT MAX(id) FROM customers) + 1, $1, $2, $3, $4, $5, $6, $7)
+        VALUES ((SELECT GREATEST(0, SELECT MAX(ID) FROM products))) + 1, $1, $2, $3, $4, $5)
     `, [req.body], (err, result) => {
         if (err) {
             res.sendStatus(500)
@@ -46,6 +46,19 @@ addressesRouter.post('/:customer_id/:address_id', (req, res, next) => {
 // PUT (OR PATCH??) edit customer's address
 
 
-// DELETE an address
+// DELETE an address (TODO - NOT YET WORKING)
+addressesRouter.delete('/:customer_id/:id', (req, res, next) => {
+    const customer_id = req.body.customer_id;
+    const id = req.body.id;
+    db.query(`DELETE FROM addresses WHERE customer_id = $1 AND id = $2`, [customer_id, id], (err, result) => {
+        if (err) {
+            res.sendStatus(500)
+            return next(err);
+        } else {
+            // Try changing to .send(result)
+            res.status(200).send(result);
+        }
+    })
+});
 
 module.exports = addressesRouter;
