@@ -30,27 +30,26 @@ customersRouter.get('/:id', (req, res, next) => {
 // ////// TO DO
 // // PATCH - edit existing customer by id
 // customersRouter.patch('/:id', (req, res, next) => {
-
+//     const { id, first_name, last_name, username, password, email } = req.body.params;
+//     db.query('UPDATE customers WHERE username = ')
 // })
 
 ////// TO DO
 // DELETE - remove a customer by id (working but wrong messages showing)
 customersRouter.delete('/:id', (req, res, next) => {
     const id = req.params.id;
-    db.query(`DELETE FROM customers WHERE id = $1`, [id], (err, result) => {
+    db.query(`DELETE FROM customers WHERE id = $1 RETURNING *;`, [id], (err, result) => {
         if (err) {
             res.sendStatus(500);
             return next(err);
-        } 
-        else if (result.rows.length === 0) {
-            res.sendStatus(404);
-            return next(new Error('Not a valid customer', err))
+        } else if (result.rows.length === 0) {
+            res.send(`No customer with id ${id} exists.`);
+            return next(err)
         } else {
-            // Try changing to .send(result)
-            res.status(200).send(`The customer's profile was successfully deleted`)
+            res.status(200).send(`Customer id ${id} successfully deleted.`)
         }
     })
-})
+});
 
 
 module.exports = customersRouter;
