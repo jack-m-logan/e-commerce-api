@@ -2,7 +2,7 @@
 
 An e-commerce RESTful API built using Express, Postgres and Node.  
 
-Entity Relationship Diagram:
+## Entity Relationship Diagram:
 
 ![Schema](./db/db_schema_v1.1.png)
 
