@@ -95,18 +95,15 @@ addressesRouter.patch('/:customer_id', (req, res, next) => {
 //         if (err) {
 //             res.sendStatus(500);
 //             return next(err);
-//         } 
-//         // GET THIS TO WORK
-//         else if (addressDetails != query) {
+//         } else if (addressDetails != query) {
 //             res.status(404).send(`Address details remain unchanged, please try updating with different details.`)
-//         } 
-//         else {
+//         } else {
 //             res.status(200).send(`Customers address successfully updated.`)
 //         }
 //     }) 
 // });
 
-// DELETE an address (TODO - query is working but need to add a 200 response message "The address has been deleted" and add error handling message
+// DELETE an address
 addressesRouter.delete('/:customer_id/:id/address', (req, res, next) => {
     const customer_id = req.params.customer_id;
     const id = req.params.id;
