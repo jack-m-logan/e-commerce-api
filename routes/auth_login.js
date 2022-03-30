@@ -39,6 +39,7 @@ loginRouter.post('/customer', (req, res, next) => {
     [first_name, last_name, username, password, email, house_number, street, town_city, county, country, postcode], 
     (err, result) => {
     if (err) {
+      res.status(500).send(`Customer registration failed, please check the details and resubmit.`)
       return next(err)
     } else {
       res.status(201).send(`New customer registration successful!`)
@@ -49,7 +50,7 @@ loginRouter.post('/customer', (req, res, next) => {
 // GET log in page
 loginRouter.get('/', (request, response) => {
   response.sendFile(path.resolve('./public/auth.html'));
-  response.status(200)
+  response.status(200).send('Log in successful!')
 });
 
 // POST form submission w/passport authentication
