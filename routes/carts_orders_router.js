@@ -19,7 +19,4 @@ cartsOrdersRouter.post('/:customer_id', (req, res, next) => {
         })
 });
 
-// GET cart_orders for a specific customer
-
-
 module.exports = cartsOrdersRouter;
