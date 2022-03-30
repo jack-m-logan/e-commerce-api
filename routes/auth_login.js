@@ -48,9 +48,8 @@ loginRouter.post('/customer', (req, res, next) => {
 });
 
 // GET log in page
-loginRouter.get('/', (request, response) => {
-  response.sendFile(path.resolve('./public/auth.html'));
-  response.status(200).send('Log in successful!')
+loginRouter.get('/', (req, res, next) => {
+  res.status(200).sendFile(path.resolve('./public/auth.html'));
 });
 
 // POST form submission w/passport authentication
