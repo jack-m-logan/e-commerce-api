@@ -2,6 +2,8 @@
 
 An e-commerce RESTful API built using Express, Postgres and Node.  
 
+To run this locally, fork the project or download locally and run the server with ```npm start``` or with nodemon ```nodemon server.js```.
+
 ## Entity Relationship Diagram:
 
 ![Schema](./db/db_schema_v1.1.png)
