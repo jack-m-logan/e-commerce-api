@@ -4,7 +4,7 @@ An e-commerce RESTful API built using Express, Postgres and Node.
 
 Entity Relationship Diagram:
 
-![Schema](../db/schema_v1.1.png)
+![Schema](/db/schema_v1.1.png)
 
 Still WIP as a couple of routes need fixing and the Passport LocalStrategy authentication needs some work. 
 
