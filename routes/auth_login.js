@@ -8,8 +8,7 @@ const db = require('../db/db');
 
 // Configure Passport LocalStrategy 
 passport.use(new LocalStrategy(function verify(username, password, cb) {
-  // changing ? parameter to $1 causes app to crash
-  db.query('SELECT * FROM customers WHERE username = ?', [username], function(err, row) {
+  db.query('SELECT * FROM customers WHERE username = $1', [username], function(err, row) {
     if (err) { 
       return cb(err) 
     }
@@ -27,23 +26,25 @@ passport.use(new LocalStrategy(function verify(username, password, cb) {
       return cb(null, row);
     })
   })
-}))
+}));
 
-// POST - create new customer (TODO: get POST new customer details working below, then add new address query to this request)
+// POST - create new customer
 loginRouter.post('/customer', (req, res, next) => {
-  const { id, first_name, last_name, username, password, email } = req.body;
-  db.query(`
-    INSERT INTO customers (id, first_name, last_name, username, password, email)
-    VALUES ((SELECT MAX(id) +1 FROM customers), $1, $2, $3, $4, $5)
-  `, [req.body], (err, result) => {
+  const { first_name, last_name, username, password, email, house_number, street, town_city, county, country, postcode } = req.body;
+  db.query(`WITH new_customer AS
+    (INSERT INTO customers (first_name, last_name, username, password, email)
+    VALUES ($1, $2, $3, $4, $5) RETURNING id)
+    INSERT INTO addresses (house_number, street, town_city, county, country, postcode, customer_id)
+    VALUES ($6, $7, $8, $9, $10, $11, (SELECT id FROM new_customer))`, 
+    [first_name, last_name, username, password, email, house_number, street, town_city, county, country, postcode], 
+    (err, result) => {
     if (err) {
       return next(err)
     } else {
-      // Try changing to .send(result)
-      res.status(201).send(`Registration successful!`)
+      res.status(201).send(`New customer registration successful!`)
     }
   })
-})
+});
 
 // GET log in page
 loginRouter.get('/', (request, response) => {

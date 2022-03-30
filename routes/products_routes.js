@@ -27,12 +27,12 @@ productsRouter.get('/:id', (req, res, next) => {
     })
 });
 
-// POST a new product to the store. TODO: getting it to work with id predetermined in req.body.params then when working reconfigure to work with filepath
-productsRouter.post('/:id', (req, res, next) => {
-    const { id, item_name, description, price } = req.body.params;
+// POST a new product to the store.
+productsRouter.post('/', (req, res, next) => {
+    const { id, item_name, description, price } = req.body;
     db.query(`
         INSERT INTO products (id, item_name, description, price)
-        VALUES ($1, $2, $3, $4);`, [req.body.params], (err, result) => {
+        VALUES ($1, $2, $3, $4);`, [id, item_name, description, price], (err, result) => {
             if (err) {
                 res.sendStatus(500);
                 return next(err);
@@ -42,7 +42,39 @@ productsRouter.post('/:id', (req, res, next) => {
         })
 });
 
-// PUT - update an existing product
+// PATCH - update an existing product. Throwing error - 'column "undefined" does not exist'.
+productsRouter.patch('/:id', (req, res, next) => {
+    const id = req.params.customer_id;
+    const updateProduct = (id, columns) => {
+        const query = ['UPDATE products'];
+        query.push('SET');
+        let set = [];
+        Object.keys(columns).forEach((key, i) => {
+            set.push(key + ' = ($' + (i + 1) + ')');
+        });
+        query.push(set.join(', '));
+        query.push('WHERE id = ' + id);
+        return query.join(' ');
+    }
+    const query = updateProduct(id, req.body);
+    const columnValues = Object.keys(req.body).map((key) => {
+        return req.body[key];
+    });
+    const productDetails = ('SELECT * FROM products');
+    db.query(query, columnValues, (err, result) => {
+        if (err) {
+            res.sendStatus(500);
+            return next(err);
+        } 
+        // GET THIS TO WORK
+        else if (productDetails != query) {
+            res.status(404).send(`Product details have not been changed.`)
+        } 
+        else {
+            res.status(200).send(`Product updated.`)
+        }
+    })
+});
 
 
 // DELETE an existing product

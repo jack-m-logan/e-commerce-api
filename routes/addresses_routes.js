@@ -1,6 +1,7 @@
 const express = require('express');
 const addressesRouter = express.Router();
 const db = require('../db/db');
+const patchUpdate = require('../helper');
 
 // GET all customer addresses
 addressesRouter.get('/', (req, res, next) => {
@@ -28,24 +29,82 @@ addressesRouter.get('/:customer_id', (req, res, next) => {
     })
 });
 
-// POST - create new address (TODO - not yet working). customer_id if addresses_fk, need to alter query to match pk of customers.
-addressesRouter.put('/:customer_id/:address_id', (req, res, next) => {
-    const { id, house_number, street, town_city, county, country, postcode, customer_id } = req.body;
+// POST - create new address 
+addressesRouter.post('/:customer_id/newaddress', (req, res, next) => {
+    const { house_number, street, town_city, county, country, postcode, customer_id } = req.body;
     db.query(`
-        INSERT INTO addresses (id, house_number, street, town_city, county, country, postcode, customer_id)
-        VALUES (SELECT MAX(id) + 1, $1, $2, $3, $4, $5)
-    `, [req.body], (err, result) => {
+        INSERT INTO addresses (house_number, street, town_city, county, country, postcode, customer_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7);`, 
+        [house_number, street, town_city, county, country, postcode, customer_id], 
+        (err, result) => {
+            if (err) {
+                res.sendStatus(500)
+                return next(err);
+            } else {
+                res.status(200).send('Address added!');
+            }
+    })
+});
+
+// PUT (OR PATCH??) edit customer's address - working but error messages not correct. Make function a module. 
+addressesRouter.patch('/:customer_id', (req, res, next) => {
+    const id = req.params.customer_id;
+    const updateAddress = (id, columns) => {
+        const query = ['UPDATE addresses'];
+        query.push('SET');
+        let set = [];
+        Object.keys(columns).forEach((key, i) => {
+            set.push(key + ' = ($' + (i + 1) + ')');
+        });
+        query.push(set.join(', '));
+        query.push('WHERE customer_id = ' + id);
+        return query.join(' ');
+    }
+    const query = updateAddress(id, req.body);
+    const columnValues = Object.keys(req.body).map((key) => {
+        return req.body[key];
+    });
+    const addressDetails = ('SELECT * FROM addresses');
+    db.query(query, columnValues, (err, result) => {
         if (err) {
-            res.sendStatus(500)
+            res.sendStatus(500);
             return next(err);
-        } else {
-            res.status(200).send('Address added!');
+        } 
+        // GET THIS TO WORK
+        else if (addressDetails != query) {
+            res.status(404).send(`Address details remain unchanged, please try updating with different details.`)
+        } 
+        else {
+            res.status(200).send(`Customers address successfully updated.`)
         }
     })
 });
 
-// PUT (OR PATCH??) edit customer's address
+// // PATCH attempt w/ function module. TODO Addresses/customer_id undefined. 
+// addressesRouter.patch('/:customer_id', (req, res, next) => {
+//     const table = addresses;
+//     const col = customer_id;
 
+//     const query = patchUpdate(id, req.body);
+//     const columnValues = Object.keys(req.body).map((key) => {
+//         return req.body[key];
+//     });
+
+//     const addressDetails = ('SELECT * FROM addresses');
+//     db.query(query, columnValues, (err, result) => {
+//         if (err) {
+//             res.sendStatus(500);
+//             return next(err);
+//         } 
+//         // GET THIS TO WORK
+//         else if (addressDetails != query) {
+//             res.status(404).send(`Address details remain unchanged, please try updating with different details.`)
+//         } 
+//         else {
+//             res.status(200).send(`Customers address successfully updated.`)
+//         }
+//     }) 
+// });
 
 // DELETE an address (TODO - query is working but need to add a 200 response message "The address has been deleted" and add error handling message
 addressesRouter.delete('/:customer_id/:id/address', (req, res, next) => {
@@ -53,7 +112,7 @@ addressesRouter.delete('/:customer_id/:id/address', (req, res, next) => {
     const id = req.params.id;
     db.query(`DELETE FROM addresses WHERE customer_id = $1 AND id = $2 RETURNING *`, [customer_id, id], (err, result) => {
         if (err) {
-            res.sendStatus(500)
+            res.status(500).send(`Sorry, there was a problem.`)
             return next(err);
         } else if (result.rows.length === 0) {
             res.send(`No address with id ${id} for customer ${customer_id} exists.`);

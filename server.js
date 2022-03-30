@@ -13,6 +13,7 @@ const addressesRouter = require('./routes/addresses_routes');
 const productsRouter = require('./routes/products_routes');
 const cartsRouter = require('./routes/carts_routes');
 const ordersRouter = require('./routes/orders_router');
+const cartsOrdersRouter = require('./routes/carts_orders_router');
 
 // Set local port
 app.set('port', process.env.PORT || 3001);
@@ -46,6 +47,9 @@ app.use('/carts', cartsRouter);
 
 //use ordersRouter 
 app.use('/orders', ordersRouter);
+
+//use cartsOrdersRouter
+app.use('/carts-orders', cartsOrdersRouter);
 
 module.exports = { app };
 

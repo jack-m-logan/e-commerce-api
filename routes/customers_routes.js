@@ -27,12 +27,37 @@ customersRouter.get('/:id', (req, res, next) => {
     })
 })
 
-// ////// TO DO
-// // PATCH - edit existing customer by id
-// customersRouter.patch('/:id', (req, res, next) => {
-//     const { id, first_name, last_name, username, password, email } = req.body.params;
-//     db.query('UPDATE customers WHERE username = ')
-// })
+// PATCH - edit existing customer by id. update function used in addresses - export it to module. Else...if not yet handling error
+customersRouter.patch('/:id', (req, res, next) => {
+    const id = req.params.id;
+    const updateCustomer = (id, columns) => {
+        const query = ['UPDATE customers'];
+        query.push('SET');
+        let set = [];
+        Object.keys(columns).forEach((key, i) => {
+            set.push(key + ' = ($' + (i + 1) + ')');
+        });
+        query.push(set.join(', '));
+        query.push('WHERE id = ' + id);
+        return query.join(' ');
+    }
+    const query = updateCustomer(id, req.body);
+    const columnValues = Object.keys(req.body).map((key) => {
+        return req.body[key];
+    });
+    const customerDetails = ('SELECT * FROM customers');
+    db.query(query, columnValues, (err, result) => {
+        if (err) {
+            res.sendStatus(500);
+            return next(err);
+        } else if (customerDetails != query) {
+            res.status(200).send(`Customer's details remain unchanged, please try updating with different details.`)
+        } 
+        else {
+            res.status(200).send(`Customer details successfully updated.`)
+        }
+    })
+});
 
 ////// TO DO
 // DELETE - remove a customer by id (working but wrong messages showing)
