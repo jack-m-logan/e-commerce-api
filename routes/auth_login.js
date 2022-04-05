@@ -2,13 +2,51 @@ const express = require('express');
 const loginRouter = express.Router();
 const path = require('path');
 const passport = require('passport');
+const session = require('express-session');
 const LocalStrategy = require('passport-local');
+// const HashStrategy = require('passport-hash')
 const crypto = require('crypto');
 const db = require('../db/db');
 
+// Define session (update secret to env variable once working)
+loginRouter.use(
+  session({
+    secret: "D53gxl41G",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+loginRouter.use(passport.initialize());
+loginRouter.use(passport.session());
+
+// // Create hash strategy
+// const hash = passport.use(new HashStrategy(
+//   function(hash, done) {
+//     User.findOne({ hash: hash }, function (err, user) {
+//       if (err) {
+//         return done(err);
+//       } else if (!user) {
+//         return done(null, false);
+//       } else if (!user.isUnconfirmed()) {
+//         return done(null, false);
+//       }
+//       return done(null, user);
+//     });
+//   }
+// ));
+
+passport.serializeUser(function(username, done) {
+  done(null, username);
+});
+
+passport.deserializeUser(function(username, done) {
+  done(null, username);
+});
+
 // Configure Passport LocalStrategy 
 passport.use(new LocalStrategy(function verify(username, password, cb) {
-  db.query('SELECT * FROM customers WHERE username = $1', [username], function(err, row) {
+  db.query('SELECT * FROM customers WHERE username = $1', [username], function(err, username) {
     if (err) { 
       return cb(err) 
     }
@@ -16,14 +54,15 @@ passport.use(new LocalStrategy(function verify(username, password, cb) {
       return cb(null, false, { message: 'Incorrect username or password.' })
     }
 
-    crypto.pbkdf2(password, row.salt, 310000, 32, 'sha256', function(err, hashedPassword) {
+    crypto.pbkdf2(password, '18907398hu1ihbjbs89u901u', 310000, 32, 'sha256', function(err, hashedPassword) {
       if (err) { 
         return cb(err) 
       }
-      if (!crypto.timingSafeEqual(row.hashed_password, hashedPassword)) {
-        return cb(null, false, { message: 'Incorrect username or password.'});
+      if (password === username.rows[0]['password']) {
+        return cb(null, username);
+      } else {
+        return cb(null, false, { failureMessage: 'Incorrect usrname or password' });
       }
-      return cb(null, row);
     })
   })
 }));
