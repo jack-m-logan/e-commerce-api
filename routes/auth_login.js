@@ -4,11 +4,11 @@ const path = require('path');
 const passport = require('passport');
 const session = require('express-session');
 const LocalStrategy = require('passport-local');
-// const HashStrategy = require('passport-hash')
+const HashStrategy = require('passport-hash')
 const crypto = require('crypto');
 const db = require('../db/db');
 
-// Define session (update secret to env variable once working)
+// Define session (update secret to env variable once working). 
 loginRouter.use(
   session({
     secret: "D53gxl41G",
@@ -36,12 +36,15 @@ loginRouter.use(passport.session());
 //   }
 // ));
 
-passport.serializeUser(function(username, done) {
-  done(null, username);
+passport.serializeUser((user, done) => {
+  done(null, user.id);
 });
 
-passport.deserializeUser(function(username, done) {
-  done(null, username);
+passport.deserializeUser((id, done) => {
+  db.users.findById(id, function (err, user) {
+    if (err) return done(err);
+    done(null, user);
+  });
 });
 
 // Configure Passport LocalStrategy 
@@ -61,11 +64,22 @@ passport.use(new LocalStrategy(function verify(username, password, cb) {
       if (password === username.rows[0]['password']) {
         return cb(null, username);
       } else {
-        return cb(null, false, { failureMessage: 'Incorrect usrname or password' });
+        return cb(null, false, { failureMessage: 'Incorrect username or password' });
       }
     })
   })
 }));
+
+///// Re-attempt Passport LocalStrategy. 
+passport.use(new LocalStrategy(function (username, password, done) {
+  db.query('SELECT * FROM customers WHERE username = $1', [username], function(err, user) {
+    if (err) return done(err);
+    if (!user) return done(null, false);
+    if (user.password != password) return done(null, false);
+    return done(null, user);
+    });  
+  })
+);
 
 // POST - create new customer
 loginRouter.post('/customer', (req, res, next) => {
@@ -91,11 +105,24 @@ loginRouter.get('/', (req, res, next) => {
   res.status(200).sendFile(path.resolve('./public/auth.html'));
 });
 
-// POST form submission w/passport authentication
-loginRouter.post('/', passport.authenticate('local', {
-  successRedirect: '../public/index.html',
-  failureRedirect: '/'
-}));
+// GET log in success page
+loginRouter.get('/login-success', (req, res, next) => {
+  res.status(200).sendFile(path.resolve('./public/login-success.html'));
+});
+
+// GET log in failure page
+loginRouter.get('/login-failure', (req, res, next) => {
+  res.status(200).sendFile(path.resolve('./public/login-failure.html'));
+});
+
+// POST form submission w/passport authentication. 
+loginRouter.post('/', passport.authenticate('local', 
+  { failureRedirect: '/login-failure' }), 
+  (req, res) => {
+    res.redirect('/login-success');
+  }
+);
+
 
 
 module.exports = loginRouter;
