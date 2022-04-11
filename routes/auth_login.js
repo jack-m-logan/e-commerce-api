@@ -3,48 +3,48 @@ const loginRouter = express.Router();
 const path = require('path');
 const passport = require('passport');
 const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 const LocalStrategy = require('passport-local');
-const HashStrategy = require('passport-hash')
+const HashStrategy = require('passport-hash');
 const crypto = require('crypto');
 const db = require('../db/db');
+const pool = require('../db/db');
+const connectEnsureLogin = require('connect-ensure-login');
 
-// Define session (update secret to env variable once working). 
-loginRouter.use(
-  session({
-    secret: "D53gxl41G",
-    resave: false,
-    saveUninitialized: false,
-  })
-);
+const sessionConfig = {
+  store: new pgSession({
+    pool: pool,
+    tableName: 'session',
+    conString: `postgres://${process.env.PG_USER}:${process.env.PG_PASSWORD}@${process.env.PG_HOST}/${process.env.PG_DATABASE}`
+  }),
+    name: 'SID',
+    secret: process.env.SESSION_SECRET,
+    resave: true,
+    saveUninitialized: true,
+    cookie: {
+      secure: true,
+      maxAge: 30 * 24 * 60 * 60 * 1000
+    }
+};
 
+loginRouter.use(session(sessionConfig));
+
+// Intialize passport and session
 loginRouter.use(passport.initialize());
 loginRouter.use(passport.session());
 
-// // Create hash strategy
-// const hash = passport.use(new HashStrategy(
-//   function(hash, done) {
-//     User.findOne({ hash: hash }, function (err, user) {
-//       if (err) {
-//         return done(err);
-//       } else if (!user) {
-//         return done(null, false);
-//       } else if (!user.isUnconfirmed()) {
-//         return done(null, false);
-//       }
-//       return done(null, user);
-//     });
-//   }
-// ));
-
+// Serialize and deserialize user 
 passport.serializeUser((user, done) => {
-  done(null, user.id);
+  done(null, user);
 });
 
-passport.deserializeUser((id, done) => {
-  db.users.findById(id, function (err, user) {
+passport.deserializeUser((user, done) => {
+  db.user.findById(id, function (err, user) {
     if (err) return done(err);
     done(null, user);
   });
+  done(null, user);
+
 });
 
 // Configure Passport LocalStrategy 
@@ -54,10 +54,10 @@ passport.use(new LocalStrategy(function verify(username, password, cb) {
       return cb(err) 
     }
     if (username.rowCount === 0) { 
-      return cb(null, false, { message: 'Incorrect username or password.' })
+      return cb(null, false, { failureMessage: 'Incorrect username or password.' })
     }
 
-    crypto.pbkdf2(password, '18907398hu1ihbjbs89u901u', 310000, 32, 'sha256', function(err, hashedPassword) {
+    crypto.pbkdf2(password, '1hsj282bnjaokjaoino294jo1aj28', 310000, 32, 'sha256', function(err, hashedPassword) {
       if (err) { 
         return cb(err) 
       }
@@ -69,17 +69,6 @@ passport.use(new LocalStrategy(function verify(username, password, cb) {
     })
   })
 }));
-
-///// Re-attempt Passport LocalStrategy. 
-passport.use(new LocalStrategy(function (username, password, done) {
-  db.query('SELECT * FROM customers WHERE username = $1', [username], function(err, user) {
-    if (err) return done(err);
-    if (!user) return done(null, false);
-    if (user.password != password) return done(null, false);
-    return done(null, user);
-    });  
-  })
-);
 
 // POST - create new customer
 loginRouter.post('/customer', (req, res, next) => {
@@ -105,9 +94,9 @@ loginRouter.get('/', (req, res, next) => {
   res.status(200).sendFile(path.resolve('./public/auth.html'));
 });
 
-// GET log in success page
+// GET log in success page. MAKE THIS SECRET i.e. authenticated users only. 
 loginRouter.get('/login-success', (req, res, next) => {
-  res.status(200).sendFile(path.resolve('./public/login-success.html'));
+    res.status(200).sendFile(path.resolve('./public/login-success.html'));
 });
 
 // GET log in failure page
@@ -115,14 +104,20 @@ loginRouter.get('/login-failure', (req, res, next) => {
   res.status(200).sendFile(path.resolve('./public/login-failure.html'));
 });
 
-// POST form submission w/passport authentication. 
+// POST form submission w/passport local authentication. 
 loginRouter.post('/', passport.authenticate('local', 
-  { failureRedirect: '/login-failure' }), 
+  { failureRedirect: '/auth/login-failure' }), 
   (req, res) => {
-    res.redirect('/login-success');
+    res.redirect('/auth/login-success');
   }
 );
 
-
+// POST form submission after failure
+loginRouter.post('/login-failure', passport.authenticate('local', 
+  { failureRedirect: '/auth/login-failure' }), 
+  (req, res) => {
+    res.redirect('/auth/login-success');
+  }
+);
 
 module.exports = loginRouter;
