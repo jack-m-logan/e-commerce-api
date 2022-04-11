@@ -94,9 +94,9 @@ loginRouter.get('/', (req, res, next) => {
   res.status(200).sendFile(path.resolve('./public/auth.html'));
 });
 
-// GET log in success page. MAKE THIS SECRET i.e. authenticated users only. 
-loginRouter.get('/login-success', (req, res, next) => {
-    res.status(200).sendFile(path.resolve('./public/login-success.html'));
+// GET log in success page. ensureLoggedIn() not yet working...
+loginRouter.get('/login-success', connectEnsureLogin.ensureLoggedIn('/login-success'), (req, res, next) => {
+  res.status(200).sendFile(path.resolve('./public/login-success.html'));
 });
 
 // GET log in failure page
